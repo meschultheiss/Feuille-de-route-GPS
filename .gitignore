@@ -1,0 +1,12 @@
+# Ignore Data directory
+/Data/
+
+# Ignore Offre directory
+/Offre/
+
+# Ignore Presentations directory
+/Presentations/
+
+# Ignore any heavy files you want to exclude
+# Example:
+# myfile.csv
