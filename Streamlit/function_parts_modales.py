@@ -9,31 +9,31 @@ import geopandas as gpd
 
 # Charger vos datasets
 @st.cache_data
-def load_data():
-    # Get the current file's directory
-    current_dir = Path(__file__).resolve().parent
-    
-    # Append parent directory to the system path
-    parent_dir = current_dir.parent
-    sys.path.append(parent_dir)
-    
-    # Define paths relative to the current file
-    data_dir = current_dir / "data"
-    legs_path = data_dir / "legs_nogeometry.pkl"
-    usr_stats_path = data_dir / "gps_user_statistics.pkl"
-    
-    # Load data using pandas
-    legs_nogeometry = pd.read_pickle(legs_path)
-    usr_stats = pd.read_pickle(usr_stats_path)
-    
-    return legs_nogeometry, usr_stats
 # def load_data():
-#     dir = path.Path(__file__).abspath()
-#     sys.path.append(dir.parent.parent)
-#     # Charger vos datasets ici
-#     legs_nogeometry = pd.read_pickle('Streamlit/data/legs_nogeometry.pkl')
-#     usr_stats = pd.read_pickle('Streamlit/data/gps_user_statistics.pkl')
+#     # Get the current file's directory
+#     current_dir = Path(__file__).resolve().parent
+    
+#     # Append parent directory to the system path
+#     parent_dir = current_dir.parent
+#     sys.path.append(parent_dir)
+    
+#     # Define paths relative to the current file
+#     data_dir = current_dir / "data"
+#     legs_path = data_dir / "legs_nogeometry.pkl"
+#     usr_stats_path = data_dir / "gps_user_statistics.pkl"
+    
+#     # Load data using pandas
+#     legs_nogeometry = pd.read_pickle(legs_path)
+#     usr_stats = pd.read_pickle(usr_stats_path)
+    
 #     return legs_nogeometry, usr_stats
+def load_data():
+    dir = path.Path(__file__).abspath()
+    sys.path.append(dir.parent.parent)
+    # Charger vos datasets ici
+    legs_nogeometry = pd.read_pickle('Streamlit/data/legs_nogeometry.pkl')
+    usr_stats = pd.read_pickle('Streamlit/data/gps_user_statistics.pkl')
+    return legs_nogeometry, usr_stats
 
 # Fonction pour calculer les distances par user et mode
 
