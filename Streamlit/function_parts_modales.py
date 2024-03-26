@@ -3,13 +3,17 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from datetime import time
+import sys
+import path
 
 # Charger vos datasets
 @st.cache_data
 def load_data():
+    dir = path.Path(__file__).abspath()
+    sys.path.append(dir.parent.parent)
     # Charger vos datasets ici
-    legs_nogeometry = pd.read_pickle('data/legs_nogeometry.pkl')
-    usr_stats = pd.read_pickle('data/gps_user_statistics.pkl')
+    legs_nogeometry = pd.read_pickle('./data/legs_nogeometry.pkl')
+    usr_stats = pd.read_pickle('./data/gps_user_statistics.pkl')
     return legs_nogeometry, usr_stats
 
 # Fonction pour calculer les distances par user et mode
