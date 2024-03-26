@@ -2,10 +2,11 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from datetime import time
+#from datetime import time
 import sys
 from pathlib import Path
 import geopandas as gpd
+import time
 
 # Charger vos datasets
 @st.cache_data
@@ -20,7 +21,7 @@ def load_data():
     # Define paths relative to the current file
     data_dir = current_dir / "data"
     legs_path = data_dir / "legs_nogeometry.pkl"
-    usr_stats_path = data_dir / "gps_user_statistics.pkl"
+    usr_stats_path = data_dir / "usr_stats_nogeometry.pkl"
     
     # Load data using pandas
     legs_nogeometry = pd.read_pickle(legs_path)
