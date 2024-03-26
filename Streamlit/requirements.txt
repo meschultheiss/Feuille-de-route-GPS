@@ -3,4 +3,6 @@ pandas
 matplotlib
 numpy
 path
+pathlib
+sys
 geopandas
