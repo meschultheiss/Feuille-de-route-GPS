@@ -8,6 +8,7 @@ from pathlib import Path
 import geopandas as gpd
 import time
 import hmac
+import plotly.express as px
 
 def check_password():
     """Returns `True` if the user had the correct password."""
@@ -46,10 +47,12 @@ def load_data():
     data_dir = current_dir / "data"
     legs_path = data_dir / "legs_nogeometry.pkl"
     usr_stats_path = data_dir / "usr_stats_nogeometry.pkl"
+    perimetre_panel_path = data_dir / "perimetre_panel.pkl"
     
     # Load data using pandas
     legs_nogeometry = pd.read_pickle(legs_path)
     usr_stats = pd.read_pickle(usr_stats_path)
+    perimetre_panel = pd.read_pickle(perimetre_panel_path)
     
     return legs_nogeometry, usr_stats
 # def load_data():

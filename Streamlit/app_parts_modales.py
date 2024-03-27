@@ -29,7 +29,7 @@ st.dataframe(legs_nogeometry.sample(4))
 
 # Aperçu de la base legs_nogeometries
 with st.container():
-    col1, col2 = st.columns([4, 1])
+    col1, col2 = st.columns([5, 2])
     col1.dataframe(usr_stats[['user_id_fors','days_in_range','days_with_track','main_motor','car_in_HH_count']].sample(4))
 
     col2.download_button(
@@ -89,6 +89,11 @@ if st.sidebar.button('Calculer les parts modales'):
 
     # Plot des graphiques
     st.bar_chart(modal_share.reset_index(), x="index", y='Distance_cumulée_metre', color=["#FF0000"])  # Optional
+    
+    # @st.cache_data
+    fig = px.pie(modal_share.reset_index(), values='Distance_cumulée_metre', names='index', hole=.3, color_discrete_sequence=px.colors.sequential.Blugrn)
+    st.plotly_chart(fig, theme="streamlit")
+
 
     st.download_button(
         label="Télécharger les données",

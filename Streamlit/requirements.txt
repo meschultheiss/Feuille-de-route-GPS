@@ -6,3 +6,4 @@ path
 pathlib
 geopandas
 streamlit-extras
+plotly
