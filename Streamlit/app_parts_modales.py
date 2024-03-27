@@ -5,8 +5,8 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-if not check_password():
-    st.stop()  # Do not continue if check_password is not True.
+# if not check_password():
+#     st.stop()  # Do not continue if check_password is not True.
 
 # Titre de l'application
 st.write('## Panel Lémanique · _Tracking GPS_')
@@ -86,13 +86,29 @@ if st.sidebar.button('Calculer les parts modales'):
     st.write(dmd_w)
     st.write('### Parts modales kilométriques')
     st.write(modal_share.T)
-
-    # Plot des graphiques
-    st.bar_chart(modal_share.reset_index(), x="index", y='Distance_cumulée_metre', color=["#FF0000"])  # Optional
     
     # @st.cache_data
-    fig = px.pie(modal_share.reset_index(), values='Distance_cumulée_metre', names='index', hole=.3, color_discrete_sequence=px.colors.sequential.Blugrn)
-    st.plotly_chart(fig, theme="streamlit")
+    with st.container():
+        col1, col2 = st.columns([1, 5])
+        col1.write("**Parts modales kilométriques** (detail)")
+
+        fig = px.pie(modal_share.reset_index(), values='Distance_cumulée_metre', names='index', hole=.3, color_discrete_sequence=px.colors.sequential.Blugrn)
+        col2.plotly_chart(fig, theme="streamlit")
+
+    # Analyze the signal loss
+        # Plot des graphiques
+    if incl_signal_loss:
+        legs_nogeometry_lql = legs_nogeometry[legs_nogeometry.low_quality_legs_1 == 1].copy().reset_index(drop=True)
+
+        dmd_w_lql = calculate_dmd(legs_nogeometry_lql, usr_stats, KT, weight, 
+                period_of_tracking, visitors, airplane,incl_signal_loss)
+        dmd_w_lql = dmd_aggreg_modes(dmd_w_lql, level=mode_aggreg)
+        
+        with st.container():
+            col1, col2 = st.columns([1, 5])
+            col1.write("**Distribution des pertes de signal** (en pourcent des distances concernées)")
+
+            col2.bar_chart((dmd_w_lql / dmd_w).fillna(0).mean(), color=["#dfab9a"])  # Optional
 
 
     st.download_button(
