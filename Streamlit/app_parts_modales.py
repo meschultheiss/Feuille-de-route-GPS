@@ -3,13 +3,16 @@ st.set_page_config(
     page_title="Panel Lémanique",
     layout="wide",
     initial_sidebar_state="expanded",
-
 )
+
+if not check_password():
+    st.stop()  # Do not continue if check_password is not True.
+
 # Titre de l'application
 st.write('## Panel Lémanique · _Tracking GPS_')
 
 # Introduction
-with st.container(border=1):
+with st.container(border=2):
     st.write("""
         🌱 Parts modales kilométriques par mode pour les résidents et visiteurs de chaque canton
             

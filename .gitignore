@@ -7,6 +7,9 @@
 # Ignore Presentations directory
 /Presentations/
 
+# Ignore Secret from Streamlit app
+/Streamlit/.streamlit/secrets.toml
+
 # Ignore any heavy files you want to exclude
 # Example:
 # myfile.csv
