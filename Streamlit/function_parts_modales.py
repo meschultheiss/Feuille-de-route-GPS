@@ -148,7 +148,7 @@ def calculate_dmd(legs_nogeom, usr_stats, KT, weight, period_of_tracking, visito
     KT_condition = (legs_nogeometry['KT_home_survey'] == KT) if KT != 'Tous' else np.full(len(legs_nogeometry), True)
     
     # Setting the visit condition if visitors are considered
-    visit_condition = (legs_nogeometry['activity_in_KT'] == KT) if visitors else None
+    visit_condition = (legs_nogeometry['activity_in_KT'] == KT) if visitors else np.full(len(legs_nogeometry), True)
     
     # Applying conditions and computing daily modal distances
     if visitors:
@@ -156,7 +156,7 @@ def calculate_dmd(legs_nogeom, usr_stats, KT, weight, period_of_tracking, visito
     else:
         dmd_condition = KT_condition
     
-    dmd = get_daily_modal_distances(legs_nogeometry.loc[dmd_condition])
+    dmd = get_daily_modal_distances(legs_nogeometry[dmd_condition])
     
     # Filtering columns that start with 'Mode::' for further calculations
     mode_columns = dmd.filter(like='Mode::')
