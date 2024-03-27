@@ -47,23 +47,12 @@ def load_data():
     data_dir = current_dir / "data"
     legs_path = data_dir / "legs_nogeometry.pkl"
     usr_stats_path = data_dir / "usr_stats_nogeometry.pkl"
-    perimetre_panel_path = data_dir / "perimetre_panel.pkl"
     
     # Load data using pandas
     legs_nogeometry = pd.read_pickle(legs_path)
     usr_stats = pd.read_pickle(usr_stats_path)
-    perimetre_panel = pd.read_pickle(perimetre_panel_path)
     
     return legs_nogeometry, usr_stats
-# def load_data():
-#     dir = path.Path(__file__).abspath()
-#     sys.path.append(dir.parent.parent)
-#     # Charger vos datasets ici
-#     legs_nogeometry = pd.read_pickle('Streamlit/data/legs_nogeometry.pkl')
-#     usr_stats = pd.read_pickle('Streamlit/data/gps_user_statistics.pkl')
-#     return legs_nogeometry, usr_stats
-
-# Fonction pour calculer les distances par user et mode
 
 #Compute daily modal distances
 def get_daily_modal_distances(df):

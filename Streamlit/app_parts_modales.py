@@ -1,39 +1,66 @@
 from function_parts_modales import *
+from style_parts_modales import *
 st.set_page_config(
     page_title="Panel Lémanique",
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
-# if not check_password():
-#     st.stop()  # Do not continue if check_password is not True.
+if not check_password():
+    st.stop()  # Do not continue if check_password is not True.
 
 # Titre de l'application
 st.write('## Panel Lémanique · _Tracking GPS_')
 
+# banner
+st.write("_Dernière mise à jour : 27 mars 2024_")
+
 # Introduction
-with st.container(border=2):
-    st.write("""
-        🌱 Parts modales kilométriques par mode pour les résidents et visiteurs de chaque canton
+with st.container(border=1):
+    col1, col2 = st.columns([5,1])
+    # col1.write("Vous trouverez :")
+    col1.write("""
+        🌱 Parts modales kilométriques pondérées par mode pour les résident·es 
+               
+        🌱 Inclure les visiteurs non-résident·es 
+               
+        🌱 Recodage des modes selon MRMT (et niveaux d'aggrégation supplémentaires)
             
-        🌱 Véhicule principal répondant·es 
+        🌱 Rééchantillonnage des jours d’observation et jours non-déplacés / non-detectés
+             
+        🌱 Sous-échantillonnage des résidents et visiteurs par canton (basé sur le questionnaire)
+             
+        🌱 Données d'équipement : véhicule principal des répondant·es 
             
-        🌱 Statistiques des répondant·es
+        🌱 Statistiques GPS des répondant·es
     """)
+
+# Footer
+st.markdown(footer, unsafe_allow_html=True)
 
 # Charger les données
 legs_nogeometry, usr_stats = load_data()
 
+st.write('#### Aperçu des données')
 # Aperçu de la base legs_nogeometries
-st.dataframe(legs_nogeometry.sample(4))
-
-# Aperçu de la base legs_nogeometries
+st.write("Le fichier étape issu avec les variables nécessaires au calcul des distances par mode et par répondant·es.")
 with st.container():
     col1, col2 = st.columns([5, 2])
-    col1.dataframe(usr_stats[['user_id_fors','days_in_range','days_with_track','main_motor','car_in_HH_count']].sample(4))
+    col1.dataframe(legs_nogeometry.sample(4))
+    
+    col2.download_button(
+        label="Télécharger les étapes",
+        data=legs_nogeometry.to_csv(),
+        file_name='legs_nogeometry_encrypted.zip'
+        )
+
+# Aperçu de la base user_stats
+st.write("Le fichier user_statistics a été généré pour pouvoir calculer les distances moyennes. Notamment le compte des jours non-déplacés et non-détectés y figure, ainsi que les pondérations et bien d'autres variables.")
+with st.container():
+    col1, col2 = st.columns([5, 2])
+    col1.dataframe(usr_stats[['user_id_fors','days_in_range','days_without_track','days_with_track','main_motor','car_in_HH_count']].sample(4))
 
     col2.download_button(
-        label="Télécharger tout le fichier user_statistics",
+        label="Télécharger les statistiques utilisateur·ices",
         data=usr_stats.to_csv(),
         file_name='usr_stats.csv',
         mime='text/csv',
@@ -42,12 +69,16 @@ with st.container():
 st.write('#### Distances moyennes journalières par répondant·es')
 st.write("👈 Aide: réglez les paramètres à gauche et lancez les calculs !")
 
-# Sidebar pour les paramètres
+# Logo
+# st.sidebar.markdown(style_logo, unsafe_allow_html=True)
+# st.sidebar.markdown("![](https://assets.super.so/15749c3c-d748-4e49-bff7-6fc9ec745dc4/images/adbffa1b-9e3c-49f8-9b4e-605d29073f81/IMAGEFichier_102.svg)", unsafe_allow_html=True)
+# Title
 st.sidebar.title('Module 1 · _parts modales_')
 
-KT = st.sidebar.selectbox('Sélectionner le canton pour échantillonnage', ['GE', 'VD', 'Tous'])
-weight = st.sidebar.selectbox('Sélectionner la pondération', ['wgt_cant_trim_gps','wgt_agg_trim_gps', 'Aucun'])
-mode_aggreg = st.sidebar.selectbox("Sélectionner le niveau d'aggrégation des modes", 
+KT = st.sidebar.selectbox('**Sélectionner le canton pour échantillonnage**', ['GE', 'VD', 'Tous'])
+weight = st.sidebar.selectbox('**Sélectionner la pondération**', ['wgt_cant_trim_gps','wgt_agg_trim_gps', 'Aucun'])
+
+mode_aggreg = st.sidebar.selectbox("**Sélectionner le niveau d'aggrégation des modes**", 
                                    ["Motiontag", "MRMT", "Niveau 1", "Niveau 2"])
 
 visitors = st.sidebar.checkbox('Inclure les visiteurs', value=False)
@@ -80,7 +111,7 @@ if st.sidebar.button('Calculer les parts modales'):
 
     # Calcul des parts modales
     mean_modal_share = dmd_w.mean()
-    modal_share = pd.DataFrame(dmd_w.sum()).astype(int).rename(columns={0:'Distance_cumulée_metre'})
+    modal_share = pd.DataFrame(dmd_w.sum()).astype(int).rename(columns={0:"Distances cumulées[mètres]"})
 
     # Afficher les parts modales
     st.write(dmd_w)
@@ -89,10 +120,10 @@ if st.sidebar.button('Calculer les parts modales'):
     
     # @st.cache_data
     with st.container():
-        col1, col2 = st.columns([1, 5])
-        col1.write("**Parts modales kilométriques** (detail)")
+        col1, col2 = st.columns([2, 5])
+        col1.write("**Parts modales kilométriques** (somme des moyennes pondérées et journalières des distances parcourues par mode)")
 
-        fig = px.pie(modal_share.reset_index(), values='Distance_cumulée_metre', names='index', hole=.3, color_discrete_sequence=px.colors.sequential.Blugrn)
+        fig = px.pie(modal_share.reset_index(), values="Distances cumulées[mètres]", names='index', hole=.3, color_discrete_sequence=px.colors.sequential.Blugrn)
         col2.plotly_chart(fig, theme="streamlit")
 
     # Analyze the signal loss
@@ -105,8 +136,11 @@ if st.sidebar.button('Calculer les parts modales'):
         dmd_w_lql = dmd_aggreg_modes(dmd_w_lql, level=mode_aggreg)
         
         with st.container():
-            col1, col2 = st.columns([1, 5])
-            col1.write("**Distribution des pertes de signal** (en pourcent des distances concernées)")
+            col1, col2 = st.columns([2, 5])
+            col1.write("""
+                       **Distribution des pertes de signal** 
+                       (Pourcentage des distances potentiellement affecté par mode)
+                       """)
 
             col2.bar_chart((dmd_w_lql / dmd_w).fillna(0).mean(), color=["#dfab9a"])  # Optional
 
@@ -118,3 +152,13 @@ if st.sidebar.button('Calculer les parts modales'):
         mime='text/csv',
     )
     my_bar.empty()
+
+st.sidebar.write("#")
+st.sidebar.divider()
+# Adding the footnote using Markdown with CSS
+st.sidebar.markdown("""
+<span style="font-size: small;">
+                    *wgt_cant_trim_gps : redressement au canton <br>
+                    *wgt_agg_trim_gps : redressement à l'agglomération
+                    </span>
+""", unsafe_allow_html=True)
