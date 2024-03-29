@@ -1,3 +1,10 @@
+from shapely import wkb
+import binascii
+import pandas as pd
+import geopandas as gpd
+from shapely.geometry import JOIN_STYLE, Polygon, MultiPolygon
+
+
 def get_user_activity_stats(count_act):
     # Convert 'started_at' column to datetime
     count_act['started_at'] = pd.to_datetime(count_act['started_at'])
@@ -32,3 +39,25 @@ def get_user_activity_stats(count_act):
     user_stats.rename(columns={'min':'first_activity_date','max':'last_activity_da'}, inplace=True)
 
     return user_stats
+
+# Fonction pour convertir une chaîne EWKB en objet shapely
+def parse_ewkb(hex_str):
+    # Convertit la chaîne hexadécimale en binaire
+    binary_data = binascii.unhexlify(hex_str)
+    # Utilise wkb.loads pour obtenir l'objet shapely à partir des données binaires
+    geometry = wkb.loads(binary_data)
+    return geometry
+
+# Fonction pour boucher les trous dans un shape (e.g. les lacs)
+def close_holes(poly: Polygon) -> Polygon:
+        """
+        Close polygon holes by limitation to the exterior ring.
+        Args:
+            poly: Input shapely Polygon
+        Example:
+            df.geometry.apply(lambda p: close_holes(p))
+        """
+        if poly.interiors:
+            return Polygon(list(poly.exterior.coords))
+        else:
+            return poly
