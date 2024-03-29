@@ -1,15 +1,18 @@
 from function_parts_modales import *
 from style_parts_modales import *
+
 st.set_page_config(
     page_title="Panel Lémanique",
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
 if not check_password():
     st.stop()  # Do not continue if check_password is not True.
 
 # Titre de l'application
 st.write('## Panel Lémanique · _Tracking GPS_')
+
 
 # banner
 st.write("_Dernière mise à jour : 29 mars 2024_")
@@ -42,11 +45,32 @@ with st.container(border=1):
         🌱 Statistiques GPS des répondant·es
     """)
 
+# Charger les données
+legs_nogeometry = load_data_legs()
+usr_stats = load_data_usrstat()
+
+# Sidebar
+# Logo
+st.sidebar.markdown(style_logo, unsafe_allow_html=True)
+st.sidebar.markdown("![](https://assets.super.so/15749c3c-d748-4e49-bff7-6fc9ec745dc4/images/adbffa1b-9e3c-49f8-9b4e-605d29073f81/IMAGEFichier_102.svg)", unsafe_allow_html=True)
+# Title
+st.sidebar.title('Module 1 · _parts modales_')
+
+KT = st.sidebar.selectbox('**Sélectionner le canton pour échantillonnage**', ['GE', 'VD', 'Tous'])
+weight = st.sidebar.selectbox('**Sélectionner la pondération**', ['wgt_cant_trim_gps','wgt_agg_trim_gps', 'Aucun'])
+period_of_tracking = st.sidebar.selectbox("**Sélectionner la période d'observation à considérer\*\***", ['active_days_count', 'days_with_track','days_in_range'])
+
+mode_aggreg = st.sidebar.selectbox("**Sélectionner le niveau d'aggrégation des modes**", 
+                                   ["Motiontag", "MRMT", "Niveau 1", "Niveau 2"])
+
+visitors = st.sidebar.checkbox('Inclure les visiteurs', value=False)
+airplane = st.sidebar.checkbox('Inclure les étapes en avion', value=False)
+# activity = st.sidebar.checkbox('Inclure les jours actifs mais sans déplacement (recommandé)\*\*', value=True)
+incl_signal_loss = st.sidebar.checkbox('Inclure les étapes avec une perte de signal importante (recommandé)', value=True)
+
+
 # Footer
 st.markdown(footer, unsafe_allow_html=True)
-
-# Charger les données
-legs_nogeometry, usr_stats = load_data()
 
 st.write('#### Aperçu des données')
 # Aperçu de la base legs_nogeometries
@@ -99,14 +123,14 @@ with st.container():
                 - **KT_home_survey** : Canton de résidence de la personne.
             """)
 
-        st.dataframe(legs_nogeometry.sample(4))
+        st.dataframe(legs_nogeometry.head(4))
     
-    with col2:
-        col2.download_button(
-            label="Télécharger les étapes",
-            data=legs_nogeometry.to_csv(),
-            file_name='legs_nogeometry_encrypted.zip'
-        )
+    # with col2:
+    #     col2.download_button(
+    #         label="Télécharger les étapes",
+    #         data=legs_nogeometry.to_csv(),
+    #         file_name='legs_nogeometry.zip'
+    #     )
 
 # Aperçu de la base user_stats
 st.markdown("""
@@ -147,13 +171,13 @@ with st.container():
             """)   
         st.dataframe(usr_stats.sample(4))
 
-    with col2:
-        st.download_button(
-            label="Télécharger les statistiques utilisateur·ices",
-            data=usr_stats.to_csv(),
-            file_name='usr_stats.csv',
-            mime='text/csv',
-        )
+#     with col2:
+#         st.download_button(
+#             label="Télécharger les statistiques utilisateur·ices",
+#             data=usr_stats.to_csv(),
+#             file_name='usr_stats.csv',
+#             mime='text/csv',
+#         )
 
 st.markdown("""
     ### Les points clés sont les suivants :
@@ -167,24 +191,7 @@ st.write('#### Distances moyennes journalières par répondant·es')
 st.write("👈 Aide: réglez les paramètres à gauche et lancez les calculs !")
 
 
-# Sidebar
-# Logo
-st.sidebar.markdown(style_logo, unsafe_allow_html=True)
-st.sidebar.markdown("![](https://assets.super.so/15749c3c-d748-4e49-bff7-6fc9ec745dc4/images/adbffa1b-9e3c-49f8-9b4e-605d29073f81/IMAGEFichier_102.svg)", unsafe_allow_html=True)
-# Title
-st.sidebar.title('Module 1 · _parts modales_')
 
-KT = st.sidebar.selectbox('**Sélectionner le canton pour échantillonnage**', ['GE', 'VD', 'Tous'])
-weight = st.sidebar.selectbox('**Sélectionner la pondération**', ['wgt_cant_trim_gps','wgt_agg_trim_gps', 'Aucun'])
-period_of_tracking = st.sidebar.selectbox("**Sélectionner la période d'observation à considérer\*\***", ['active_days_count', 'days_with_track','days_in_range'])
-
-mode_aggreg = st.sidebar.selectbox("**Sélectionner le niveau d'aggrégation des modes**", 
-                                   ["Motiontag", "MRMT", "Niveau 1", "Niveau 2"])
-
-visitors = st.sidebar.checkbox('Inclure les visiteurs', value=False)
-airplane = st.sidebar.checkbox('Inclure les étapes en avion', value=False)
-# activity = st.sidebar.checkbox('Inclure les jours actifs mais sans déplacement (recommandé)\*\*', value=True)
-incl_signal_loss = st.sidebar.checkbox('Inclure les étapes avec une perte de signal importante (recommandé)', value=True)
 
 # if activity:
 #     period_of_tracking = 'active_days_count'
@@ -192,6 +199,7 @@ incl_signal_loss = st.sidebar.checkbox('Inclure les étapes avec une perte de si
 #     period_of_tracking = 'days_with_track'
 
 # Bouton pour calculer les parts modales
+
 if st.sidebar.button('Calculer les parts modales'):
     # Barre de progrès
     progress_text = "Calculs en cours"
@@ -233,7 +241,6 @@ if st.sidebar.button('Calculer les parts modales'):
 
     st.write(modal_share.T)
     
-    # @st.cache_data
     with st.container():
         col1, col2 = st.columns([2, 5])
         col1.write("**Parts modales kilométriques** (somme des moyennes pondérées et journalières des distances parcourues par mode)")

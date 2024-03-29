@@ -35,7 +35,7 @@ def check_password():
 
 # Charger vos datasets
 @st.cache_data
-def load_data():
+def load_data_legs():
     # Get the current file's directory
     current_dir = Path(__file__).resolve().parent
     
@@ -46,13 +46,29 @@ def load_data():
     # Define paths relative to the current file
     data_dir = current_dir / "data"
     legs_path = data_dir / "legs_nogeometry.pkl"
-    usr_stats_path = data_dir / "usr_stats_nogeometry.pkl"
     
     # Load data using pandas
     legs_nogeometry = pd.read_pickle(legs_path)
+    
+    return legs_nogeometry
+
+@st.cache_data
+def load_data_usrstat():
+    # Get the current file's directory
+    current_dir = Path(__file__).resolve().parent
+    
+    # Append parent directory to the system path
+    parent_dir = current_dir.parent
+    sys.path.append(parent_dir)
+    
+    # Define paths relative to the current file
+    data_dir = current_dir / "data"
+    usr_stats_path = data_dir / "usr_stats_nogeometry.pkl"
+    
+    # Load data using pandas
     usr_stats = pd.read_pickle(usr_stats_path)
     
-    return legs_nogeometry, usr_stats
+    return usr_stats
 
 #Compute daily modal distances
 def get_daily_modal_distances(df):
