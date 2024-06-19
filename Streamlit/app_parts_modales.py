@@ -15,7 +15,7 @@ st.write('## Panel Lémanique · _Tracking GPS_')
 
 
 # banner
-st.write("_Dernière mise à jour : 29 mars 2024_")
+st.write("_Dernière mise à jour : 19 juin 2024_")
 st.write("""Dans le cadre de l’enquête du Panel Lémanique, un suivi gps a été réalisé du 24 avril au 5 juin 2023 auprès de 2806 personnes résidentes de la zone d’étude. 
          Ces données ont été collectées par MotionTag, puis livrées (base brute) sous la forme de géodonnées de deux types : legs et staypoints. 
          Les géodonnées de type legs se rapprochent de l’étape1 de déplacement, tel que renseigné dans le mrmt. 
@@ -56,17 +56,19 @@ st.sidebar.markdown("![](https://assets.super.so/15749c3c-d748-4e49-bff7-6fc9ec7
 # Title
 st.sidebar.title('Module 1 · _parts modales_')
 
+# User Interface for user inputs
+mode_col = st.sidebar.selectbox("**Sélectionner la colonne des modes de transport (détecté ou confirmé)**", ['detected_mode', 'mode'])
 KT = st.sidebar.selectbox('**Sélectionner le canton pour échantillonnage**', ['GE', 'VD', 'Tous'])
-weight = st.sidebar.selectbox('**Sélectionner la pondération**', ['wgt_cant_trim_gps','wgt_agg_trim_gps', 'Aucun'])
-period_of_tracking = st.sidebar.selectbox("**Sélectionner la période d'observation à considérer\*\***", ['active_days_count', 'days_with_track','days_in_range'])
+weight = st.sidebar.selectbox('**Sélectionner la pondération**', ['wgt_cant_trim_gps', 'Aucun'])
+period_of_tracking = st.sidebar.selectbox("**Sélectionner la période d'observation à considérer**", ['active_days_count', 'days_with_track','days_in_range'], index=2)
+mode_aggreg = st.sidebar.selectbox("**Sélectionner le niveau d'aggrégation des modes**", ["Motiontag", "MRMT", "Niveau 1", "Niveau 2"])
 
-mode_aggreg = st.sidebar.selectbox("**Sélectionner le niveau d'aggrégation des modes**", 
-                                   ["Motiontag", "MRMT", "Niveau 1", "Niveau 2"])
-
+bad_users = st.sidebar.checkbox('Inclure les utilisateurs avec mauvais signal récurrent', value=False)
 visitors = st.sidebar.checkbox('Inclure les visiteurs', value=False)
 airplane = st.sidebar.checkbox('Inclure les étapes en avion', value=False)
-# activity = st.sidebar.checkbox('Inclure les jours actifs mais sans déplacement (recommandé)\*\*', value=True)
-incl_signal_loss = st.sidebar.checkbox('Inclure les étapes avec une perte de signal importante (recommandé)', value=True)
+incl_signal_loss = st.sidebar.selectbox('Exclure les étapes avec une perte de signal importante (non-recommandé)', ['Non', "0.05 de perte", "0.07 de perte"], index=0)
+outliers = st.sidebar.selectbox('**Exclure les distances extrêmes**', ['Quantile95', 'Quantile98', 'Quantile99', 'Aucune'], index=2)
+
 
 
 # Footer
@@ -94,7 +96,7 @@ with st.container():
                 - **started_at_timezone** : Fuseau horaire de début de l'étape.
                 - **finished_at** : Heure de fin de l'étape (segment de trajet).
                 - **finished_at_timezone** : Fuseau horaire de fin de l'étape.
-                - **length** : Longueur de l'étape (segment de trajet).
+                - **length_leg** : Longueur de l'étape (segment de trajet).
                 - **detected_mode** : Mode de déplacement détecté.
                 - **mode** : Mode de déplacement.
                 - **purpose** : But de l'étape (segment de trajet).
@@ -192,12 +194,6 @@ st.write("👈 Aide: réglez les paramètres à gauche et lancez les calculs !")
 
 
 
-
-# if activity:
-#     period_of_tracking = 'active_days_count'
-# else:
-#     period_of_tracking = 'days_with_track'
-
 # Bouton pour calculer les parts modales
 
 if st.sidebar.button('Calculer les parts modales'):
@@ -208,13 +204,11 @@ if st.sidebar.button('Calculer les parts modales'):
     for percent_complete in range(100):
         time.sleep(0.01)
         my_bar.progress(percent_complete + 1, text=progress_text)
-    # time.sleep(1)
+    time.sleep(1)
     # Calculer les parts modales
     # Applying conditions and filtering data to get daily modal distances
-    dmd_w = calculate_dmd(legs_nogeometry, usr_stats, KT, weight, 
-              period_of_tracking, visitors, airplane,incl_signal_loss)
+    dmd_w = calculate_dmd(legs_nogeometry, usr_stats, KT, weight, period_of_tracking, bad_users, visitors, airplane, incl_signal_loss, outliers, mode_col)
     dmd_w = dmd_aggreg_modes(dmd_w, level=mode_aggreg)
-
 
     # Calcul des parts modales
     mean_modal_share = dmd_w.mean()
@@ -250,11 +244,10 @@ if st.sidebar.button('Calculer les parts modales'):
 
     # Analyze the signal loss
         # Plot des graphiques
-    if incl_signal_loss:
+    if incl_signal_loss == 'Non':
         legs_nogeometry_lql = legs_nogeometry[legs_nogeometry.low_quality_legs_1 == 1].copy().reset_index(drop=True)
 
-        dmd_w_lql = calculate_dmd(legs_nogeometry_lql, usr_stats, KT, weight, 
-                period_of_tracking, visitors, airplane,incl_signal_loss)
+        dmd_w_lql = calculate_dmd(legs_nogeometry_lql, usr_stats, KT, weight, period_of_tracking, bad_users, visitors, airplane, incl_signal_loss, outliers, mode_col)
         dmd_w_lql = dmd_aggreg_modes(dmd_w_lql, level=mode_aggreg)
         
         with st.container():

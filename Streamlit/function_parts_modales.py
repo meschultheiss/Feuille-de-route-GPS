@@ -71,20 +71,20 @@ def load_data_usrstat():
     return usr_stats
 
 #Compute daily modal distances
-def get_daily_modal_distances(df):
+def get_daily_modal_distances(df, mode_col):
     
     # Create a copy of the DataFrame to avoid modifying the original
     df = df.copy()
     
-    df['length'] = df['length'].astype(float)
+    df['length_leg'] = df['length_leg'].astype(float)
     # Group by 'user_id_day', 'previous_mode', and 'previous_leg_id', then sum the distances
-    grouped = df.groupby(['user_id_fors', 'user_id_day', 'mode'])['length'].sum().reset_index()
+    grouped = df.groupby(['user_id_fors', 'user_id_day', mode_col])['length_leg'].sum().reset_index()
 
     # Pivot the table to have modes as columns
     pivoted = grouped.pivot_table(
         index=['user_id_fors', 'user_id_day'],
-        columns='mode',
-        values='length',
+        columns=mode_col,
+        values='length_leg',
         aggfunc='sum'
     ).reset_index()
 
@@ -127,41 +127,73 @@ def get_daily_modal_distances(df):
 
 
 #Compute daily modal distances
-def calculate_dmd(legs_nogeom, usr_stats, KT, weight, period_of_tracking, visitors, airplane, incl_signal_loss):
+def calculate_dmd(legs_nogeom, usr_stats, KT, weight, period_of_tracking, bad_users, visitors, airplane, incl_signal_loss, outliers, mode_col):
 
-    legs_nogeometry = legs_nogeom.copy()
-    # Filter Airplane if needed
-    if not airplane:
-        legs_nogeometry = legs_nogeometry[legs_nogeometry['mode'] != 'Mode::Airplane'].copy()
-
-    # Filter tracks with signal loss
-    if not incl_signal_loss:
-        legs_nogeometry = legs_nogeometry[legs_nogeometry['low_quality_legs_1'] == 0].copy()
-        
-        
+    # SUBSET USERS
+    
+    # Filter on bad users
+    bad_users_condition = (usr_stats['usr_w_constant_bad_signal'] == 0) if not bad_users else np.full(len(usr_stats), True)
+    
+    usr_stats_sub_list = usr_stats.loc[bad_users_condition, 'user_id_fors'].to_list()
+    
+    # Creating a dictionary mapping user IDs to their corresponding period of tracking values
+    active_days_mapping = usr_stats.set_index('user_id_fors').loc[usr_stats_sub_list, period_of_tracking].to_dict()
+    
     # Creating a dictionary mapping user IDs to their corresponding weight values
     # If weight is 'Aucun', map each user ID to the value 1
     if weight == 'Aucun':
-        weight_mapping = usr_stats.set_index('user_id_fors').apply(lambda x: 1, axis=1).to_dict()
+        weight_mapping = usr_stats.set_index('user_id_fors').loc[usr_stats_sub_list].apply(lambda x: 1, axis=1).to_dict()
     else:
-        weight_mapping = usr_stats.set_index('user_id_fors')[weight].to_dict()
+        weight_mapping = usr_stats.set_index('user_id_fors').loc[usr_stats_sub_list, weight].to_dict()
     
-    # Creating a dictionary mapping user IDs to their corresponding period of tracking values
-    active_days_mapping = usr_stats.set_index('user_id_fors')[period_of_tracking].to_dict()
+    # SUBSET LEGS
+    legs_sub = legs_nogeom[legs_nogeom.user_id_fors.isin(usr_stats_sub_list)].copy()
     
-    # Setting the condition based on the value of KT
-    KT_condition = (legs_nogeometry['KT_home_survey'] == KT) if KT != 'Tous' else np.full(len(legs_nogeometry), True)
+    # Filter Airplane if needed
+    airplane_condition = (legs_sub[mode_col] != 'Mode::Airplane') if not airplane else pd.Series(np.full(len(legs_sub), True))
     
-    # Setting the visit condition if visitors are considered
-    visit_condition = (legs_nogeometry['activity_in_KT'] == KT) if visitors else np.full(len(legs_nogeometry), True)
     
-    # Applying conditions and computing daily modal distances
+    # Filter on residents and visitors
+    resid_condition = (legs_sub['KT_home_survey'] == KT) if KT != 'Tous' else pd.Series(np.full(len(legs_sub), True))
+    visit_condition = (legs_sub['activity_in_KT'] == KT) if visitors else pd.Series(np.full(len(legs_sub), True))
     if visitors:
-        dmd_condition = KT_condition | visit_condition
+        resident_visit_condition = resid_condition | visit_condition
     else:
-        dmd_condition = KT_condition
+        resident_visit_condition = resid_condition
     
-    dmd = get_daily_modal_distances(legs_nogeometry[dmd_condition])
+    # Filter tracks with signal loss
+    # Handle selection
+    if incl_signal_loss == "0.05 de perte":
+        signal_loss_threshold = 'low_quality_legs_1'
+    elif incl_signal_loss == "0.07 de perte":
+        signal_loss_threshold = 'low_quality_legs_2'
+    
+    signal_loss_condition = (legs_sub[signal_loss_threshold] == 0) if incl_signal_loss != "Non" else pd.Series(np.full(len(legs_sub), True))
+    
+    # Filter outliers if needed
+    # Handle selection
+    if outliers == "Quantile95":
+        outlier_threshold = f"extreme95_length_{mode_col}"
+    elif outliers == "Quantile98":
+        outlier_threshold = f"extreme98_length_{mode_col}"
+    elif outliers == "Quantile99":
+        outlier_threshold = f"extreme99_length_{mode_col}"
+    
+    outliers_condition = (~legs_sub[outlier_threshold]) if outliers != "Aucune" else pd.Series(np.full(len(legs_sub), True))
+    
+    # Combine all conditions
+    def check_boolean_series(condition, name):
+        if not isinstance(condition, pd.Series) or condition.dtype != 'bool':
+            raise ValueError(f"{name} is not a boolean series.")
+    
+    check_boolean_series(airplane_condition, 'airplane_condition')
+    check_boolean_series(resident_visit_condition, 'resident_visit_condition')
+    check_boolean_series(signal_loss_condition, 'signal_loss_condition')
+    check_boolean_series(outliers_condition, 'outliers_condition')
+    
+    combined_dmd_condition = airplane_condition & resident_visit_condition & signal_loss_condition & outliers_condition
+    
+    dmd = get_daily_modal_distances(legs_sub[combined_dmd_condition], mode_col)
     
     # Filtering columns that start with 'Mode::' for further calculations
     mode_columns = dmd.filter(like='Mode::')
