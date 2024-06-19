@@ -165,8 +165,8 @@ with st.container():
                 - **wgt_agg_trim_gps** : Poids appliqué aux données GPS de l'agglomération après ajustement.
                 - **main_motor** : Principal moyen de transport de l'utilisateur.
                 - **car_in_HH_count** : Nombre de voitures dans le ménage de l'utilisateur.
-                - **home_geometry_from_gps_** : Géométrie de la résidence de l'utilisateur basée sur les données GPS (en mètres).
-                - **home_geometry_from_survey_m** : Géométrie de la résidence de l'utilisateur basée sur l'enquête (en mètres).
+                - **home_geometry_from_gps** : Géométrie de la résidence de l'utilisateur basée sur les données GPS (EPSG:4326).
+                - **home_geometry_from_survey** : Géométrie de la résidence de l'utilisateur basée sur l'enquête (EPSG:4326).
                 - **distance_home_gps_survey_m** : Distance entre la résidence de l'utilisateur selon les données GPS et l'enquête (en mètres).
             """)   
         st.dataframe(usr_stats.sample(4))

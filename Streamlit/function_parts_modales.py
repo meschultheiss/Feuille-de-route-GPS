@@ -202,7 +202,7 @@ def dmd_aggreg_modes(dmd, level):
         elif level == "Niveau 1":
             # Second level of mode mapping
             mode_mapping = {
-                'Voiture conducteur': ['Mode::Car', 'Mode::Carsharing','Mode::Ecar','Mode::TaxiUber'],
+                'Voiture': ['Mode::Car', 'Mode::Carsharing','Mode::Ecar','Mode::TaxiUber'],
                 '2RM': ['Mode::KickScooter', 'Mode::Motorbike'],
                 'Train': ['Mode::Train','Mode::RegionalTrain'],
                 'Autre TP': ['Mode::Bus','Mode::LightRail','Mode::Subway','Mode::Tram','Mode::Boat'],
