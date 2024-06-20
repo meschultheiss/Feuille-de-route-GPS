@@ -9,6 +9,7 @@ import geopandas as gpd
 import time
 import hmac
 import plotly.express as px
+import pyzipper
 
 def check_password():
     """Returns `True` if the user had the correct password."""
@@ -35,6 +36,7 @@ def check_password():
 
 # Charger vos datasets
 @st.cache_data
+
 def load_data_legs():
     # Get the current file's directory
     current_dir = Path(__file__).resolve().parent
@@ -45,10 +47,17 @@ def load_data_legs():
     
     # Define paths relative to the current file
     data_dir = current_dir / "data"
-    legs_path = data_dir / "legs_nogeometry.pkl"
+    legs_path = data_dir / "legs_nogeometry.pkl.zip"
     
     # Load data using pandas
-    legs_nogeometry = pd.read_pickle(legs_path)
+    with pyzipper.AESZipFile(legs_path) as zf:
+        # Set the password
+        csv_file_name = zf.namelist()[0]
+        
+        # Open the specific CSV file within the ZIP
+        with zf.open(csv_file_name, 'r', pwd=st.secrets["password"].encode('utf-8')) as file:
+            # Read the file content into a pandas DataFrame
+            legs_nogeometry = pd.read_pickle(file)
     
     return legs_nogeometry
 
@@ -63,12 +72,54 @@ def load_data_usrstat():
     
     # Define paths relative to the current file
     data_dir = current_dir / "data"
-    usr_stats_path = data_dir / "usr_stats_nogeometry.pkl"
+    usr_stats_path = data_dir / "usr_stats_nogeometry.pkl.zip"
     
     # Load data using pandas
-    usr_stats = pd.read_pickle(usr_stats_path)
+    with pyzipper.AESZipFile(usr_stats_path) as zf:
+        # Set the password
+        csv_file_name = zf.namelist()[0]
+        
+        # Open the specific CSV file within the ZIP
+        with zf.open(csv_file_name, 'r', pwd=st.secrets["password"].encode('utf-8')) as file:
+            # Read the file content into a pandas DataFrame
+            usr_stats = pd.read_pickle(file)
     
     return usr_stats
+
+# def load_data_legs():
+#     # Get the current file's directory
+#     current_dir = Path(__file__).resolve().parent
+    
+#     # Append parent directory to the system path
+#     parent_dir = current_dir.parent
+#     sys.path.append(parent_dir)
+    
+#     # Define paths relative to the current file
+#     data_dir = current_dir / "data"
+#     legs_path = data_dir / "legs_nogeometry.pkl"
+    
+#     # Load data using pandas
+#     legs_nogeometry = pd.read_pickle(legs_path)
+    
+#     return legs_nogeometry
+
+# @st.cache_data
+# def load_data_usrstat():
+#     # Get the current file's directory
+#     current_dir = Path(__file__).resolve().parent
+    
+#     # Append parent directory to the system path
+#     parent_dir = current_dir.parent
+#     sys.path.append(parent_dir)
+    
+#     # Define paths relative to the current file
+#     data_dir = current_dir / "data"
+#     usr_stats_path = data_dir / "usr_stats_nogeometry.pkl"
+    
+#     # Load data using pandas
+#     usr_stats = pd.read_pickle(usr_stats_path)
+    
+#     return usr_stats
 
 #Compute daily modal distances
 def get_daily_modal_distances(df, mode_col):

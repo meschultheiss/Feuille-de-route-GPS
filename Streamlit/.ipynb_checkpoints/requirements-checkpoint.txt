@@ -2,3 +2,9 @@ streamlit
 pandas
 matplotlib
 numpy
+path
+pathlib
+geopandas
+streamlit-extras
+plotly
+pyzipper
