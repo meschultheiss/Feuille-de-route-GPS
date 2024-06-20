@@ -1,3 +1,5 @@
 Streamlit/data/legs_nogeometry.pkl filter=lfs diff=lfs merge=lfs -text
 Streamlit/data/ filter=lfs diff=lfs merge=lfs -text
 Streamlit/data/usr_stats_nogeometry.pkl filter=lfs diff=lfs merge=lfs -text
+*.zip filter=lfs diff=lfs merge=lfs -text
+Streamlit/data/* filter=lfs diff=lfs merge=lfs -text
