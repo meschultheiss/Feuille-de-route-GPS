@@ -7,8 +7,8 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# if not check_password():
-#     st.stop()  # Do not continue if check_password is not True.
+if not check_password():
+    st.stop()  # Do not continue if check_password is not True.
 
 # Titre de l'application
 st.write('## Panel Lémanique · _Tracking GPS_')
