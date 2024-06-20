@@ -132,8 +132,8 @@ def calculate_dmd(legs_nogeom, usr_stats, KT, weight, period_of_tracking, bad_us
     # SUBSET USERS
     
     # Filter on bad users
-    bad_users_condition = (usr_stats['usr_w_constant_bad_signal'] == 0) if not bad_users else np.full(len(usr_stats), True)
-    
+    bad_users_condition = usr_stats['usr_w_constant_bad_signal'] == 0 if not bad_users else np.full(len(usr_stats), True)
+
     usr_stats_sub_list = usr_stats.loc[bad_users_condition, 'user_id_fors'].to_list()
     
     # Creating a dictionary mapping user IDs to their corresponding period of tracking values
@@ -169,7 +169,7 @@ def calculate_dmd(legs_nogeom, usr_stats, KT, weight, period_of_tracking, bad_us
         signal_loss_threshold = 'low_quality_legs_2'
     
     signal_loss_condition = (legs_sub[signal_loss_threshold] == 0) if incl_signal_loss != "Non" else pd.Series(np.full(len(legs_sub), True))
-    
+        
     # Filter outliers if needed
     # Handle selection
     if outliers == "Quantile95":
@@ -178,8 +178,14 @@ def calculate_dmd(legs_nogeom, usr_stats, KT, weight, period_of_tracking, bad_us
         outlier_threshold = f"extreme98_length_{mode_col}"
     elif outliers == "Quantile99":
         outlier_threshold = f"extreme99_length_{mode_col}"
-    
-    outliers_condition = (~legs_sub[outlier_threshold]) if outliers != "Aucune" else pd.Series(np.full(len(legs_sub), True))
+    else:
+        outlier_threshold = None
+
+    if outliers != "Aucune" and outlier_threshold is not None:
+        outliers_condition = ~legs_sub[outlier_threshold]
+    else:
+        outliers_condition = pd.Series(np.full(len(legs_sub), True))
+
     
     # Combine all conditions
     def check_boolean_series(condition, name):

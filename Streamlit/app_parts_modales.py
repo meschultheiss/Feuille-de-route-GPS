@@ -7,8 +7,8 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-if not check_password():
-    st.stop()  # Do not continue if check_password is not True.
+# if not check_password():
+#     st.stop()  # Do not continue if check_password is not True.
 
 # Titre de l'application
 st.write('## Panel Lémanique · _Tracking GPS_')
@@ -57,7 +57,7 @@ st.sidebar.markdown("![](https://assets.super.so/15749c3c-d748-4e49-bff7-6fc9ec7
 st.sidebar.title('Module 1 · _parts modales_')
 
 # User Interface for user inputs
-mode_col = st.sidebar.selectbox("**Sélectionner la colonne des modes de transport (détecté ou confirmé)**", ['detected_mode', 'mode'])
+mode_col = st.sidebar.selectbox("**Sélectionner la colonne des modes de transport (détecté ou confirmé)**", ['detected_mode', 'mode'], index=1)
 KT = st.sidebar.selectbox('**Sélectionner le canton pour échantillonnage**', ['GE', 'VD', 'Tous'])
 weight = st.sidebar.selectbox('**Sélectionner la pondération**', ['wgt_cant_trim_gps', 'Aucun'])
 period_of_tracking = st.sidebar.selectbox("**Sélectionner la période d'observation à considérer**", ['active_days_count', 'days_with_track','days_in_range'], index=2)
@@ -229,6 +229,7 @@ if st.sidebar.button('Calculer les parts modales'):
                 file_name='distances_jour_user_pond.csv',
                 mime='text/csv',
             )
+            st.write(f"Nombre d'utilisateur conservés dans le calcul : {len(dmd_w)}")
     st.write('### Parts modales kilométriques (base étape)')
      # Description méthodo
     st.write("**Méthode** : Distances moyennes journalières cumulées (somme des colonnes du tableau ci-dessus).") 
